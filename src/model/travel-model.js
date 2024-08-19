@@ -1,12 +1,12 @@
 import { getRandomTravel } from '../mock/travel.js';
 
-const TRAVEL_COUNT = 5;
+const TRAVEL_COUNT = 20;
 
 export default class TravelModel {
-  travel = Array.from({ length: TRAVEL_COUNT }, getRandomTravel);
+  _travel = Array.from({ length: TRAVEL_COUNT }, getRandomTravel);
 
-  getTravel() {
-    return this.travel;
+  get travel() {
+    return this._travel;
   }
 }
 

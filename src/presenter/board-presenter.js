@@ -12,37 +12,78 @@ import EventSectionOffersView from '../view/event-section-offers-view.js';
 import EventSectionDestinationView from '../view/event-section-destination-view.js';
 import EventFromEditView from '../view/create-event-from-edit-view.js';
 
+// const TOTAL_COUNT_VIEW_TRIPS = 8;
+
 export default class BoardPresenter {
+  #pageMain = null;
+  #travelModel = null;
+  // #loadMoreButtonComponent = null;
+  #travelBoard = [];
   mainBoardViewComponent = new MainBoardView();
   pageBodyViewComponent = new PageBodyView();
-  TripEventBodyViewComponent = new TripEventBodyView();
+  #tripEventBodyViewComponent = new TripEventBodyView();
   SectionTripEventsViewComponent = new SectionTripEventsView();
   EditFormViewComponent = new EditFormView();
   EventsDetailsViewComponent = new EventsDetailsView();
   EventFromEditViewComponent = new EventFromEditView();
 
   constructor({ pageMain, travelModel }) {
-    this.pageMain = pageMain;
-    this.travelModel = travelModel;
+    this.#pageMain = pageMain;
+    this.#travelModel = travelModel;
   }
 
   init() {
-    this.travelBoard = [...this.travelModel.getTravel()];
+    this.#travelBoard = [...this.#travelModel.travel];
 
-    render(this.mainBoardViewComponent, this.pageMain);
-    render(this.pageBodyViewComponent, this.mainBoardViewComponent.getElement());
-    render(this.SectionTripEventsViewComponent, this.pageBodyViewComponent.getElement());
-    render(new SortEventsView(), this.SectionTripEventsViewComponent.getElement());
-    render(this.TripEventBodyViewComponent, this.pageBodyViewComponent.getElement());
-    render(this.EventFromEditViewComponent, this.TripEventBodyViewComponent.getElement());
-    render(this.EditFormViewComponent, this.EventFromEditViewComponent.getElement());
-    render(new EventsHeaderView(), this.EditFormViewComponent.getElement());
-    render(this.EventsDetailsViewComponent, this.EditFormViewComponent.getElement());
-    render(new EventSectionOffersView(), this.EventsDetailsViewComponent.getElement());
-    render(new EventSectionDestinationView(), this.EventsDetailsViewComponent.getElement());
+    render(this.mainBoardViewComponent, this.#pageMain);
+    render(this.pageBodyViewComponent, this.mainBoardViewComponent.element);
+    render(this.SectionTripEventsViewComponent, this.pageBodyViewComponent.element);
+    render(new SortEventsView(), this.SectionTripEventsViewComponent.element);
+    render(this.#tripEventBodyViewComponent, this.pageBodyViewComponent.element);
+    render(this.EventsDetailsViewComponent, this.EditFormViewComponent.element);
+    render(new EventSectionOffersView(), this.EventsDetailsViewComponent.element);
+    render(new EventSectionDestinationView(), this.EventsDetailsViewComponent.element);
 
-    for (let i = 0; i < this.travelBoard.length; i++) {
-      render(new NewTripView({travel: this.travelBoard[i]}), this.TripEventBodyViewComponent.getElement());
+    for (let i = 0; i < this.#travelBoard.length; i++) {
+      this.#renderTravel(this.#travelBoard[i]);
     }
+
+    // if (this.#travelBoard.length > TOTAL_COUNT_VIEW_TRIPS) {
+
+    // }
+  }
+
+  #renderTravel(travel) {
+    const newTrip = new NewTripView({travel});
+    const editTrip = new EventsHeaderView({travel});
+
+    const showTripEditor = () => {
+      this.#tripEventBodyViewComponent.element.replaceChild(editTrip.element, newTrip.element);
+    };
+
+    const closeTripEditor = () => {
+      this.#tripEventBodyViewComponent.element.replaceChild(newTrip.element, editTrip.element);
+    };
+
+    const closeEsc = (evt) => {
+      if (evt.key === 'Escape' || evt.key === 'Esc') {
+        evt.preventDefault();
+        closeTripEditor();
+        document.removeEventListener('keydown', closeEsc);
+      }
+    };
+
+    newTrip.element.querySelector('.event__rollup-btn').addEventListener('click', () => {
+      showTripEditor();
+      document.addEventListener('keydown', closeEsc);
+    });
+
+    editTrip.element.querySelector('form').addEventListener('submit', (evt) => {
+      evt.preventDefault();
+      closeTripEditor();
+      document.removeEventListener('keydown', closeEsc);
+    });
+
+    render(newTrip, this.#tripEventBodyViewComponent.element);
   }
 }
