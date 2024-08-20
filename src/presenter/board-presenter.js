@@ -11,6 +11,7 @@ import EventsDetailsView from '../view/events-details-view.js';
 import EventSectionOffersView from '../view/event-section-offers-view.js';
 import EventSectionDestinationView from '../view/event-section-destination-view.js';
 import EventFromEditView from '../view/create-event-from-edit-view.js';
+import EmptyPageView from '../view/empty-list-view.js';
 
 // const TOTAL_COUNT_VIEW_TRIPS = 8;
 
@@ -26,36 +27,16 @@ export default class BoardPresenter {
   EditFormViewComponent = new EditFormView();
   EventsDetailsViewComponent = new EventsDetailsView();
   EventFromEditViewComponent = new EventFromEditView();
+  EmptyPageView = new EmptyPageView();
 
   constructor({ pageMain, travelModel }) {
     this.#pageMain = pageMain;
     this.#travelModel = travelModel;
   }
 
-  init() {
-    this.#travelBoard = [...this.#travelModel.travel];
-
-    render(this.mainBoardViewComponent, this.#pageMain);
-    render(this.pageBodyViewComponent, this.mainBoardViewComponent.element);
-    render(this.SectionTripEventsViewComponent, this.pageBodyViewComponent.element);
-    render(new SortEventsView(), this.SectionTripEventsViewComponent.element);
-    render(this.#tripEventBodyViewComponent, this.pageBodyViewComponent.element);
-    render(this.EventsDetailsViewComponent, this.EditFormViewComponent.element);
-    render(new EventSectionOffersView(), this.EventsDetailsViewComponent.element);
-    render(new EventSectionDestinationView(), this.EventsDetailsViewComponent.element);
-
-    for (let i = 0; i < this.#travelBoard.length; i++) {
-      this.#renderTravel(this.#travelBoard[i]);
-    }
-
-    // if (this.#travelBoard.length > TOTAL_COUNT_VIEW_TRIPS) {
-
-    // }
-  }
-
   #renderTravel(travel) {
-    const newTrip = new NewTripView({travel});
-    const editTrip = new EventsHeaderView({travel});
+    const newTrip = new NewTripView({ travel });
+    const editTrip = new EventsHeaderView({ travel });
 
     const showTripEditor = () => {
       this.#tripEventBodyViewComponent.element.replaceChild(editTrip.element, newTrip.element);
@@ -85,5 +66,31 @@ export default class BoardPresenter {
     });
 
     render(newTrip, this.#tripEventBodyViewComponent.element);
+  }
+
+  #renderBoard() {
+    render(this.mainBoardViewComponent, this.#pageMain);
+
+    if (this.#travelBoard.length === 0) {
+      render(this.pageBodyViewComponent, this.mainBoardViewComponent.element);
+      render(new EmptyPageView(), this.pageBodyViewComponent.element);
+    } else {
+      render(this.pageBodyViewComponent, this.mainBoardViewComponent.element);
+      render(this.SectionTripEventsViewComponent, this.pageBodyViewComponent.element);
+      render(new SortEventsView(), this.SectionTripEventsViewComponent.element);
+      render(this.#tripEventBodyViewComponent, this.pageBodyViewComponent.element);
+      render(this.EventsDetailsViewComponent, this.EditFormViewComponent.element);
+      render(new EventSectionOffersView(), this.EventsDetailsViewComponent.element);
+      render(new EventSectionDestinationView(), this.EventsDetailsViewComponent.element);
+
+      for (let i = 0; i < this.#travelBoard.length; i++) {
+        this.#renderTravel(this.#travelBoard[i]);
+      }
+    }
+  }
+
+  init() {
+    this.#travelBoard = [...this.#travelModel.travel];
+    this.#renderBoard();
   }
 }
